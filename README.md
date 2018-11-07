@@ -1,3 +1,5 @@
+Forked from: https://github.com/christianlundkvist/simple-multisig
+
 # simple-multisig
 Simple multisig for Ethereum using detached signatures
 
