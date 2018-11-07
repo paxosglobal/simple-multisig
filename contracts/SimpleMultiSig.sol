@@ -6,23 +6,27 @@ contract SimpleMultiSig {
   uint public threshold;             // immutable state
   mapping (address => bool) isOwner; // immutable state
   address[] public ownersArr;        // immutable state
+  address operator;                  // immutable state
 
   // Note that owners_ must be strictly increasing, in order to prevent duplicates
-  constructor(uint threshold_, address[] owners_) public {
+  constructor(address operator_, uint threshold_, address[] owners_) public {
     require(owners_.length <= 10 && threshold_ <= owners_.length && threshold_ >= 0);
 
     address lastAdd = address(0); 
     for (uint i = 0; i < owners_.length; i++) {
       require(owners_[i] > lastAdd);
+      require(owners_[i] != operator_);
       isOwner[owners_[i]] = true;
       lastAdd = owners_[i];
     }
+    operator = operator_;
     ownersArr = owners_;
     threshold = threshold_;
   }
 
   // Note that address recovered from signatures must be strictly increasing, in order to prevent duplicates
   function execute(uint8[] sigV, bytes32[] sigR, bytes32[] sigS, address destination, uint value, bytes data) public {
+    require(msg.sender == operator);
     require(sigR.length == threshold);
     require(sigR.length == sigS.length && sigR.length == sigV.length);
 

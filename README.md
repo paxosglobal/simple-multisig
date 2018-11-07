@@ -17,3 +17,15 @@ To run the tests:
 * Make sure `ganache-cli` is running in its own terminal window.
 * `npm install`
 * `npm run test`
+
+## Operator role
+Paxos has added an operator role that is the sole signer/sender that can send transactions to the contract.
+This makes it so that instead of requiring just t of n signatures, it requires 
+1 signature by the operator AND t of n signatures where n does not include the operator,
+so it's more like t+1 of n+1 where the last signature has to be the operator.
+
+The use case is where a server signature is required, plus and t of n 
+other acters, in our case humans, where `1<=t<=n`. 
+In particular the humans have to each, separately, sign a transaction 
+before sending it to the server 
+for centralized submission.
