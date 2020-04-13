@@ -26,7 +26,7 @@ bytes32 constant SALT = 0x251543af6a222378665a76fe38dbceae4871a070b7fdaf5c6c30cf
   
   // Note that owners_ must be strictly increasing, in order to prevent duplicates
   constructor(uint threshold_, address[] owners_, uint chainId) public {
-    require(owners_.length <= 10 && threshold_ <= owners_.length && threshold_ > 0);
+    require(owners_.length <= 20 && threshold_ <= owners_.length && threshold_ > 0);
 
     address lastAdd = address(0);
     for (uint i = 0; i < owners_.length; i++) {
