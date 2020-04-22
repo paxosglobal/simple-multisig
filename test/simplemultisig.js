@@ -69,6 +69,9 @@ contract('SimpleMultiSig', function(accounts) {
     let randomAddr = web3.sha3(Math.random().toString()).slice(0,42)
     let executor = accounts[0]
     let msgSender = accounts[0]
+
+    let ownersArr = await multisig.owners.call()
+    assert.equal(ownersArr.toString(), owners.toString())
     
     // Receive funds
     await web3SendTransaction({from: accounts[0], to: multisig.address, value: web3.toWei(web3.toBigNumber(0.1), 'ether')})

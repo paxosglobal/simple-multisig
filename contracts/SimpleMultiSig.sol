@@ -23,6 +23,10 @@ bytes32 constant SALT = 0x251543af6a222378665a76fe38dbceae4871a070b7fdaf5c6c30cf
   address[] public ownersArr;        // immutable state
 
   bytes32 DOMAIN_SEPARATOR;          // hash for EIP712, computed from contract address
+
+  function owners() public view returns (address[]) {
+    return ownersArr;
+  }
   
   // Note that owners_ must be strictly increasing, in order to prevent duplicates
   constructor(uint threshold_, address[] owners_, uint chainId) public {
