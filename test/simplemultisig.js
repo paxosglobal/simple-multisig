@@ -161,7 +161,7 @@ contract('SimpleMultiSig', function(accounts) {
       errMsg = error.message
     }
 
-    assert.equal(errMsg, 'VM Exception while processing transaction: revert', 'Test did not throw')
+    assert.include(errMsg, 'VM Exception while processing transaction: revert', 'Test did not throw')
 
     done()
   }
@@ -175,7 +175,7 @@ contract('SimpleMultiSig', function(accounts) {
       errMsg = error.message
     }
 
-    assert.equal(errMsg, 'VM Exception while processing transaction: revert', 'Test did not throw')
+    assert.include(errMsg, 'VM Exception while processing transaction: revert', 'Test did not throw')
 
     done()
   }
