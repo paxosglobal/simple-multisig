@@ -63,7 +63,7 @@ bytes32 constant SALT = 0x251543af6a222378665a76fe38dbceae4871a070b7fdaf5c6c30cf
     for (uint i = 0; i < threshold; i++) {
       address recovered = ecrecover(totalHash, sigV[i], sigR[i], sigS[i]);
       require(recovered > lastAdd, "signer order");
-      require(isOwner[recovered], "signer not owner");
+      require(isOwner[recovered], addressToString(recovered));
       lastAdd = recovered;
     }
 
@@ -77,4 +77,18 @@ bytes32 constant SALT = 0x251543af6a222378665a76fe38dbceae4871a070b7fdaf5c6c30cf
   }
 
   function () payable external {}
+
+  function addressToString(address _addr) public pure returns(string) {
+    bytes32 value = bytes32(uint256(_addr));
+    bytes memory alphabet = "0123456789abcdef";
+
+    bytes memory str = new bytes(42);
+    str[0] = '0';
+    str[1] = 'x';
+    for (uint i = 0; i < 20; i++) {
+      str[2+i*2] = alphabet[uint(uint8(value[i + 12] >> 4))];
+      str[3+i*2] = alphabet[uint(uint8(value[i + 12] & 0x0f))];
+    }
+    return string(str);
+  }
 }
