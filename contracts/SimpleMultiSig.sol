@@ -62,7 +62,8 @@ bytes32 constant SALT = 0x251543af6a222378665a76fe38dbceae4871a070b7fdaf5c6c30cf
     address lastAdd = address(0); // cannot have address(0) as an owner
     for (uint i = 0; i < threshold; i++) {
       address recovered = ecrecover(totalHash, sigV[i], sigR[i], sigS[i]);
-      require(recovered > lastAdd && isOwner[recovered], "signer");
+      require(recovered > lastAdd, "signer order");
+      require(isOwner[recovered], "signer not owner");
       lastAdd = recovered;
     }
 
