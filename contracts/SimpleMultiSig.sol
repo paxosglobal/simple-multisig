@@ -53,7 +53,7 @@ bytes32 constant SALT = 0x251543af6a222378665a76fe38dbceae4871a070b7fdaf5c6c30cf
                                             SALT));
   }
 
-  // requires this contract to be the caller so that a quorum of owners is required
+  // Requires a quorum of owners to call from this contract using execute
   function setOwners(uint threshold_, address[] owners_) external {
     require(msg.sender == address(this));
     setOwners_(threshold_, owners_);
