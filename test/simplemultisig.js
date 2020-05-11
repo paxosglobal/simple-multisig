@@ -63,18 +63,22 @@ contract('SimpleMultiSig', function(accounts) {
 
   }
 
-  let executeSendSuccess = async function(owners, threshold, signers, done) {
+  let setupContract = async function(owners, threshold) {
 
     let multisig = await SimpleMultiSig.new(threshold, owners, CHAINID, {from: accounts[0]})
+
+    // Receive funds
+    await web3SendTransaction({from: accounts[0], to: multisig.address, value: web3.toWei(web3.toBigNumber(0.1), 'ether')})
+
+    return multisig
+  }
+
+  let executeSendSuccess = async function(owners, threshold, signers, done) {
+
+    let multisig = await setupContract(owners, threshold)
     let randomAddr = web3.sha3(Math.random().toString()).slice(0,42)
     let executor = accounts[0]
     let msgSender = accounts[0]
-
-    let ownersArr = await multisig.owners.call()
-    assert.equal(ownersArr.toString(), owners.toString())
-    
-    // Receive funds
-    await web3SendTransaction({from: accounts[0], to: multisig.address, value: web3.toWei(web3.toBigNumber(0.1), 'ether')})
 
     let nonce = await multisig.nonce.call()
     assert.equal(nonce.toNumber(), 0)
@@ -83,6 +87,8 @@ contract('SimpleMultiSig', function(accounts) {
     assert.equal(bal, web3.toWei(0.1, 'ether'))
 
     // check that owners are stored correctly
+    let ownersArr = await multisig.owners.call()
+    assert.equal(ownersArr.toString(), owners.toString())
     for (var i=0; i<owners.length; i++) {
       let ownerFromContract = await multisig.ownersArr.call(i)
       assert.equal(owners[i], ownerFromContract)
@@ -141,13 +147,10 @@ contract('SimpleMultiSig', function(accounts) {
 
   let executeSendFailure = async function(owners, threshold, signers, nonceOffset, executor, gasLimit, done) {
 
-    let multisig = await SimpleMultiSig.new(threshold, owners, CHAINID, {from: accounts[0]})
+    let multisig = await setupContract(owners, threshold)
 
     let nonce = await multisig.nonce.call()
     assert.equal(nonce.toNumber(), 0)
-
-    // Receive funds
-    await web3SendTransaction({from: accounts[0], to: multisig.address, value: web3.toWei(web3.toBigNumber(2), 'ether')})
 
     let randomAddr = web3.sha3(Math.random().toString()).slice(0,42)
     let value = web3.toWei(web3.toBigNumber(0.1), 'ether')
@@ -337,6 +340,102 @@ contract('SimpleMultiSig', function(accounts) {
     })
   })
 
-  
+  describe("setOwners", () => {
+
+    let noOp = ()=>{}
+    let threshold = 2
+
+    it("successfully migrates to new owners", (done) => {
+      let accountsA = acct.slice(0,3)
+      let accountsB = acct.slice(3,6)
+
+      let signersA = [acct[0], acct[1]]
+      signersA.sort()
+      let signersB = [acct[3], acct[4]]
+      signersB.sort()
+
+      let nonce = 0
+      let executor = accounts[0]
+
+      let executeSetOwners = async function(done) {
+        let multisig = await setupContract(accountsA, 2)
+
+        // change the owners using a quorum of signatures from group A to group B
+        let data = lightwallet.txutils._encodeFunctionTxData('setOwners', ['uint256', 'address[]'], [threshold, accountsB])
+        let sigs = createSigs(signersA, multisig.address, nonce, multisig.address, 0, data, executor, 200000)
+        await multisig.execute(sigs.sigV, sigs.sigR, sigs.sigS, multisig.address, 0, data, executor, 200000, {from: executor, gasLimit: 1000000})
+
+        let endOwners = await multisig.owners()
+        assert.equal(endOwners.toString(), accountsB.toString())
+
+        done()
+      }
+
+      executeSetOwners(done)
+    })
+
+    it("cannot be called with non-owner signatures", (done) => {
+      let accountsA = acct.slice(0,3)
+      let accountsB = acct.slice(3,6)
+
+      let signersB = [acct[3], acct[4]]
+      signersB.sort()
+
+      let nonce = 0
+      let executor = accounts[0]
+
+      let executeSetOwners = async function(done) {
+        let multisig = await setupContract(accountsA, threshold)
+
+        // change the owners to group B using signatures from group B who are not already owners
+        let data = lightwallet.txutils._encodeFunctionTxData('setOwners', ['uint256', 'address[]'], [threshold, accountsB])
+        let sigs = createSigs(signersB, multisig.address, nonce, multisig.address, 0, data, executor, 200000)
+        let errMsg = ''
+        try {
+          await multisig.execute(sigs.sigV, sigs.sigR, sigs.sigS, multisig.address, 0, data, executor, 200000, {from: executor, gasLimit: 1000000})
+        }
+        catch(error) {
+          errMsg = error.message
+        }
+        assert.equal(errMsg, 'VM Exception while processing transaction: revert', 'Test did not throw')
+
+        let endOwners = await multisig.owners()
+        assert.equal(endOwners.toString(), accountsA.toString())
+
+        done()
+      }
+
+      executeSetOwners(done)
+    })
+
+    it("cannot be called directly", (done) => {
+      let accountsA = acct.slice(0,3)
+
+      let signersB = [acct[3], acct[4]]
+      signersB.sort()
+
+      let executor = accounts[0]
+
+      let executeSetOwners = async function(done) {
+        let multisig = await setupContract(accountsA, 2)
+
+        let errMsg = ''
+        try {
+          await multisig.setOwners(threshold, signersB, {from: executor, gasLimit: 1000000})
+        }
+        catch(error) {
+          errMsg = error.message
+        }
+        assert.equal(errMsg, 'VM Exception while processing transaction: revert', 'Test did not throw')
+
+        let endOwners = await multisig.owners()
+        assert.equal(endOwners.toString(), accountsA.toString())
+
+        done()
+      }
+
+      executeSetOwners(done)
+    })
+  })
   
 })

@@ -27,9 +27,9 @@ bytes32 constant SALT = 0x251543af6a222378665a76fe38dbceae4871a070b7fdaf5c6c30cf
   function owners() public view returns (address[]) {
     return ownersArr;
   }
-  
+
   // Note that owners_ must be strictly increasing, in order to prevent duplicates
-  constructor(uint threshold_, address[] owners_, uint chainId) public {
+  function setOwners_(uint threshold_, address[] owners_) private {
     require(owners_.length <= 20 && threshold_ <= owners_.length && threshold_ > 0);
 
     address lastAdd = address(0);
@@ -40,6 +40,10 @@ bytes32 constant SALT = 0x251543af6a222378665a76fe38dbceae4871a070b7fdaf5c6c30cf
     }
     ownersArr = owners_;
     threshold = threshold_;
+  }
+
+  constructor(uint threshold_, address[] owners_, uint chainId) public {
+    setOwners_(threshold_, owners_);
 
     DOMAIN_SEPARATOR = keccak256(abi.encode(EIP712DOMAINTYPE_HASH,
                                             NAME_HASH,
@@ -47,6 +51,12 @@ bytes32 constant SALT = 0x251543af6a222378665a76fe38dbceae4871a070b7fdaf5c6c30cf
                                             chainId,
                                             this,
                                             SALT));
+  }
+
+  // Requires a quorum of owners to call from this contract using execute
+  function setOwners(uint threshold_, address[] owners_) external {
+    require(msg.sender == address(this));
+    setOwners_(threshold_, owners_);
   }
 
   // Note that address recovered from signatures must be strictly increasing, in order to prevent duplicates
