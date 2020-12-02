@@ -30,10 +30,10 @@ contract('SimpleMultiSig', function(accounts) {
 
     let txInput = TXTYPE_HASH + destinationAddr.slice(2).padStart(64, '0') + value.toString('16').padStart(64, '0') + web3.sha3(data, {encoding: 'hex'}).slice(2) + nonce.toString('16').padStart(64, '0') + executor.slice(2).padStart(64, '0') + gasLimit.toString('16').padStart(64, '0')
     let txInputHash = web3.sha3(txInput, {encoding: 'hex'})
-    
+
     let input = '0x19' + '01' + DOMAIN_SEPARATOR.slice(2) + txInputHash.slice(2)
     let hash = web3.sha3(input, {encoding: 'hex'})
-    
+
     let sigV = []
     let sigR = []
     let sigS = []
@@ -58,7 +58,7 @@ contract('SimpleMultiSig', function(accounts) {
     //   console.log("s: " + sigS[0])
     //   console.log("v: " + sigV[0])
     // }
-      
+
     return {sigV: sigV, sigR: sigR, sigS: sigS}
 
   }
@@ -95,9 +95,7 @@ contract('SimpleMultiSig', function(accounts) {
     }
 
     let value = web3.toWei(web3.toBigNumber(0.01), 'ether')
-
     let sigs = createSigs(signers, multisig.address, nonce, randomAddr, value, '', executor, 21000)
-
     await multisig.execute(sigs.sigV, sigs.sigR, sigs.sigS, randomAddr, value, '', executor, 21000, {from: msgSender, gasLimit: 1000000})
 
     // Check funds sent
@@ -182,7 +180,7 @@ contract('SimpleMultiSig', function(accounts) {
 
     done()
   }
-  
+
   before((done) => {
 
     let seed = "pull rent tower word science patrol economy legal yellow kit frequent fat"
@@ -256,15 +254,15 @@ contract('SimpleMultiSig', function(accounts) {
       const nonceOffset = 1
       executeSendFailure(acct.slice(0,3), 2, [acct[0], acct[1]], nonceOffset, accounts[0], 100000, done)
     })
-    
-  })  
+
+  })
 
   describe("Edge cases", () => {
     it("should succeed with 10 owners, 10 signers", (done) => {
       executeSendSuccess(acct.slice(0,10), 10, acct.slice(0,10), done)
     })
 
-    it("should fail to create with signers 0, 0, 2, and threshold 3", (done) => { 
+    it("should fail to create with signers 0, 0, 2, and threshold 3", (done) => {
       creationFailure([acct[0],acct[0],acct[2]], 3, done)
     })
 
@@ -331,11 +329,11 @@ contract('SimpleMultiSig', function(accounts) {
       const signers = [acct[0]]
 
       let sigs = createSigs(signers, walletAddress, nonce, destination, value, data, executor, gasLimit)
-      
+
       assert.equal(sigs.sigR[0], mmSigR)
       assert.equal(sigs.sigS[0], mmSigS)
       assert.equal(sigs.sigV[0], mmSigV)
-      
+
       done()
     })
   })
@@ -367,6 +365,28 @@ contract('SimpleMultiSig', function(accounts) {
 
         let endOwners = await multisig.owners()
         assert.equal(endOwners.toString(), accountsB.toString())
+
+        // check that the old owners can't send some eth
+        let value = web3.toWei(web3.toBigNumber(0.01), 'ether')
+        let randomAddr = web3.sha3(Math.random().toString()).slice(0,42)
+        nonce += 1
+        let errMsg = ''
+        try {
+          sigs = createSigs(signersA, multisig.address, nonce, randomAddr, value, '', executor, 21000)
+          await multisig.execute(sigs.sigV, sigs.sigR, sigs.sigS, randomAddr, value, '', executor, 21000, {from: executor, gasLimit: 1000000})
+        }
+        catch(error) {
+          errMsg = error.message
+        }
+        assert.equal(errMsg, 'VM Exception while processing transaction: revert', 'Test did not throw')
+        bal = await web3GetBalance(randomAddr)
+        assert.equal(bal.toString(), 0)
+
+        // check that the new owners can send some eth
+        sigs = createSigs(signersB, multisig.address, nonce, randomAddr, value, '', executor, 21000)
+        await multisig.execute(sigs.sigV, sigs.sigR, sigs.sigS, randomAddr, value, '', executor, 21000, {from: executor, gasLimit: 1000000})
+        bal = await web3GetBalance(randomAddr)
+        assert.equal(bal.toString(), value.toString())
 
         done()
       }
@@ -437,5 +457,5 @@ contract('SimpleMultiSig', function(accounts) {
       executeSetOwners(done)
     })
   })
-  
+
 })
