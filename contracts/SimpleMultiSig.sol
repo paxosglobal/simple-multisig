@@ -32,12 +32,20 @@ bytes32 constant SALT = 0x251543af6a222378665a76fe38dbceae4871a070b7fdaf5c6c30cf
   function setOwners_(uint threshold_, address[] owners_) private {
     require(owners_.length <= 20 && threshold_ <= owners_.length && threshold_ > 0);
 
+    // remove old owners from map
+    for (uint i = 0; i < ownersArr.length; i++) {
+      isOwner[ownersArr[i]] = false;
+    }
+
+    // add new owners to map
     address lastAdd = address(0);
-    for (uint i = 0; i < owners_.length; i++) {
+    for (i = 0; i < owners_.length; i++) {
       require(owners_[i] > lastAdd);
       isOwner[owners_[i]] = true;
       lastAdd = owners_[i];
     }
+
+    // set owners array and threshold
     ownersArr = owners_;
     threshold = threshold_;
   }
