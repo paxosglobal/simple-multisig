@@ -456,6 +456,54 @@ contract('SimpleMultiSig', function(accounts) {
 
       executeSetOwners(done)
     })
+
+    it("cannot set threshold to zero or pass zero owners", (done) => {
+      let accountsA = acct.slice(0,3)
+      let accountsB = acct.slice(3,6)
+
+      let signersA = [acct[0], acct[1]]
+      signersA.sort()
+
+      let nonce = 0
+      let executor = accounts[0]
+
+      let executeSetOwners = async function(done) {
+        let multisig = await setupContract(accountsA, threshold)
+
+        // change the threshold to zero
+        let zeroThreshold = 0
+        let data = lightwallet.txutils._encodeFunctionTxData('setOwners', ['uint256', 'address[]'], [zeroThreshold, accountsB])
+        let sigs = createSigs(signersA, multisig.address, nonce, multisig.address, 0, data, executor, 200000)
+        let errMsg = ''
+        try {
+          await multisig.execute(sigs.sigV, sigs.sigR, sigs.sigS, multisig.address, 0, data, executor, 200000, {from: executor, gasLimit: 1000000})
+        }
+        catch(error) {
+          errMsg = error.message
+        }
+        assert.equal(errMsg, 'VM Exception while processing transaction: revert', 'Test did not throw')
+
+        // change the owners to none
+        let noAccounts = []
+        data = lightwallet.txutils._encodeFunctionTxData('setOwners', ['uint256', 'address[]'], [threshold, noAccounts])
+        sigs = createSigs(signersA, multisig.address, nonce, multisig.address, 0, data, executor, 200000)
+        errMsg = ''
+        try {
+          await multisig.execute(sigs.sigV, sigs.sigR, sigs.sigS, multisig.address, 0, data, executor, 200000, {from: executor, gasLimit: 1000000})
+        }
+        catch(error) {
+          errMsg = error.message
+        }
+        assert.equal(errMsg, 'VM Exception while processing transaction: revert', 'Test did not throw')
+
+        let endOwners = await multisig.owners()
+        assert.equal(endOwners.toString(), accountsA.toString())
+
+        done()
+      }
+
+      executeSetOwners(done)
+    })
   })
 
 })
