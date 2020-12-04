@@ -29,7 +29,9 @@ contract('SimpleMultiSig', function(accounts) {
     DOMAIN_SEPARATOR = web3.utils.sha3(domainData, {encoding: 'hex'})
 
     let txInput = TXTYPE_HASH + destinationAddr.slice(2).padStart(64, '0') + value.toString('16').padStart(64, '0') + web3.utils.sha3Raw(data).slice(2) + (nonce || '0').toString(16).padStart(64, '0') + executor.slice(2).padStart(64, '0') + gasLimit.toString('16').padStart(64, '0')
+    console.log(txInput)
     let txInputHash = web3.utils.sha3(txInput, {encoding: 'hex'})
+    console.log(txInputHash)
 
     let input = '0x19' + '01' + DOMAIN_SEPARATOR.slice(2) + txInputHash.slice(2)
     let hash = web3.utils.sha3(input, {encoding: 'hex'})
