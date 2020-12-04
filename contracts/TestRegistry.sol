@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity 0.6.11;
 
 // This contract is only used for testing purposes.
 contract TestRegistry {
