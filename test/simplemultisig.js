@@ -48,8 +48,8 @@ contract('SimpleMultiSig', function(accounts) {
     for (var i=0; i<signers.length; i++) {
       let sig = lightwallet.signing.signMsgHash(lw, keyFromPw, hash, signers[i])
       sigV.push(sig.v)
-      sigR.push('0x' + (sig.r || '').toString('hex'))
-      sigS.push('0x' + (sig.s || '').toString('hex'))
+      sigR.push(web3.utils.toHex(sig.r))
+      sigS.push(web3.utils.toHex(sig.s))
     }
 
     return {sigV: sigV, sigR: sigR, sigS: sigS}
