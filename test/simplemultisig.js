@@ -5,6 +5,7 @@ const Promise = require('bluebird')
 
 const web3SendTransaction = Promise.promisify(web3.eth.sendTransaction)
 const web3GetBalance = Promise.promisify(web3.eth.getBalance)
+var BN = web3.utils.BN;
 
 let DOMAIN_SEPARATOR
 const TXTYPE_HASH = '0x3ee892349ae4bbe61dce18f95115b5dc02daf49204cc602458cd4c1f540d56d7'
@@ -28,9 +29,13 @@ contract('SimpleMultiSig', function(accounts) {
     const domainData = EIP712DOMAINTYPE_HASH + NAME_HASH.slice(2) + VERSION_HASH.slice(2) + CHAINID.toString('16').padStart(64, '0') + multisigAddr.slice(2).padStart(64, '0') + SALT.slice(2)
     DOMAIN_SEPARATOR = web3.utils.sha3(domainData, {encoding: 'hex'})
 
-    let txInput = TXTYPE_HASH + destinationAddr.slice(2).padStart(64, '0') + value.toString('16').padStart(64, '0') + web3.utils.sha3Raw(data).slice(2) + (nonce || '0').toString(16).padStart(64, '0') + executor.slice(2).padStart(64, '0') + gasLimit.toString('16').padStart(64, '0')
+    let txInput = TXTYPE_HASH + destinationAddr.slice(2).padStart(64, '0') + web3.utils.toHex(value).slice(2).padStart(64, '0') + web3.utils.sha3Raw(data).slice(2) + (nonce || '0').toString(16).padStart(64, '0') + executor.slice(2).padStart(64, '0') + gasLimit.toString('16').padStart(64, '0')
     console.log(txInput)
-    let txInputHash = web3.utils.sha3(txInput, {encoding: 'hex'})
+    let txInputHash = web3.utils.sha3Raw(txInput, {encoding: 'hex'})
+
+    //0x3ee892349ae4bbe61dce18f95115b5dc02daf49204cc602458cd4c1f540d56d70000000000000000000000004971f19dab06fd57ec442ec0881905f6700d7389000000000000000000000000000000000000000000000000002386f26fc10000c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470000000000000000000000000000000000000000000000000000000000000000000000000000000000000000033172af007be3be0999c5921f8c5d01e32f2549f0000000000000000000000000000000000000000000000000000000000005208
+    //0x3ee892349ae4bbe61dce18f95115b5dc02daf49204cc602458cd4c1f540d56d7000000000000000000000000f46e8682e67bc552878c771026bc996be9e6996c000000000000000000000000000000000000000000000000002386f26fc10000c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470000000000000000000000000000000000000000000000000000000000000000000000000000000000000000033172aF007BE3bE0999c5921F8c5D01E32f2549F0000000000000000000000000000000000000000000000000000000000005208
+
     console.log(txInputHash)
 
     let input = '0x19' + '01' + DOMAIN_SEPARATOR.slice(2) + txInputHash.slice(2)
@@ -64,7 +69,7 @@ contract('SimpleMultiSig', function(accounts) {
   let executeSendSuccess = async function(owners, threshold, signers, done) {
 
     let multisig = await setupContract(owners, threshold)
-    let randomAddr = web3.utils.sha3(Math.random().toString()).slice(0,42)
+    let randomAddr = '0x1234123412341234123412341234123412341234' // web3.utils.sha3(Math.random().toString()).slice(0,42)
     let executor = accounts[0]
     let msgSender = accounts[0]
 
