@@ -48,8 +48,8 @@ contract('SimpleMultiSig', function(accounts) {
     for (var i=0; i<signers.length; i++) {
       let sig = lightwallet.signing.signMsgHash(lw, keyFromPw, hash, signers[i])
       sigV.push(sig.v)
-      sigR.push(web3.utils.toHex(sig.r))
-      sigS.push(web3.utils.toHex(sig.s))
+      sigR.push(web3.utils.toHex(sig.r).toString())
+      sigS.push(web3.utils.toHex(sig.s).toString())
     }
 
     return {sigV: sigV, sigR: sigR, sigS: sigS}
@@ -90,7 +90,7 @@ contract('SimpleMultiSig', function(accounts) {
     let value = web3.utils.toWei('0.01', 'ether')
     let sigs = createSigs(signers, multisig.address, nonce, randomAddr, value, '', executor, 21000)
     console.log(sigs)
-    await multisig.execute(sigs.sigV, sigs.sigR, sigs.sigS, randomAddr, value, '0x00', executor, 21000, {from: msgSender, gasLimit: 1000000})
+    await multisig.execute(sigs.sigV, sigs.sigR, sigs.sigS, randomAddr, value, 0, executor, 21000, {from: msgSender, gasLimit: 1000000})
     return done()
 
     // Check funds sent
