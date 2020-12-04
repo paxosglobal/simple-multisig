@@ -45,6 +45,8 @@ contract('SimpleMultiSig', function(accounts) {
     let sigR = []
     let sigS = []
 
+    console.log(signers, keyFromPw.toString(), input, hash)
+
     for (var i=0; i<signers.length; i++) {
       let sig = lightwallet.signing.signMsgHash(lw, keyFromPw, hash, signers[i])
       sigV.push(sig.v)
