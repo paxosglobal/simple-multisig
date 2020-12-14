@@ -17,10 +17,10 @@ bytes32 constant TXTYPE_HASH = 0x3ee892349ae4bbe61dce18f95115b5dc02daf49204cc602
 
 bytes32 constant SALT = 0x251543af6a222378665a76fe38dbceae4871a070b7fdaf5c6c30cf758dc33cc0;
 
-  uint public nonce;                 // (only) mutable state
-  uint public threshold;             // immutable state
-  mapping (address => bool) isOwner; // immutable state
-  address[] public ownersArr;        // immutable state
+  uint public nonce;                 // mutable state
+  uint public threshold;             // mutable state
+  mapping (address => bool) isOwner; // mutable state
+  address[] public ownersArr;        // mutable state
 
   bytes32 DOMAIN_SEPARATOR;          // hash for EIP712, computed from contract address
 

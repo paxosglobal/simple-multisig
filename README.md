@@ -33,6 +33,10 @@ The data to be signed also includes the following EIP712 Domain data that specif
 * Contract Address (Address of the specific multisig contract instance)
 * Salt (`0x251543af6a222378665a76fe38dbceae4871a070b7fdaf5c6c30cf758dc33cc0`, unique identifier specific to SimpleMultisig)
 
+## Setting Owners
+
+Paxos Simple Multisig is based on [the original](https://github.com/christianlundkvist/simple-multisig) but adds setOwners functionality to be able to add and remove owners directly.
+
 ## Installation and testing
 
 Install global dependencies:
