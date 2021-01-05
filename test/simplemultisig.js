@@ -25,13 +25,13 @@ contract('SimpleMultiSig', function(accounts) {
 
   let packMsg = function(multisigAddr, nonce, destinationAddr, value, data, executor, gasLimit) {
     const domainData = EIP712DOMAINTYPE_HASH + NAME_HASH.slice(2) + VERSION_HASH.slice(2) + CHAINID.toString('16').padStart(64, '0') + multisigAddr.slice(2).padStart(64, '0') + SALT.slice(2)
-    DOMAIN_SEPARATOR = web3.sha3(domainData, {encoding: 'hex'})
+    DOMAIN_SEPARATOR = web3.utils.sha3Raw(domainData)
 
-    let txInput = TXTYPE_HASH + destinationAddr.slice(2).padStart(64, '0') + value.toString('16').padStart(64, '0') + web3.sha3(data, {encoding: 'hex'}).slice(2) + nonce.toString('16').padStart(64, '0') + executor.slice(2).padStart(64, '0') + gasLimit.toString('16').padStart(64, '0')
-    let txInputHash = web3.sha3(txInput, {encoding: 'hex'})
+    let txInput = TXTYPE_HASH + destinationAddr.slice(2).padStart(64, '0') + value.toString('16').padStart(64, '0') + web3.utils.sha3Raw(data).slice(2) + nonce.toString('16').padStart(64, '0') + executor.slice(2).padStart(64, '0') + gasLimit.toString('16').padStart(64, '0')
+    let txInputHash = web3.utils.sha3Raw(txInput)
 
     let input = '0x19' + '01' + DOMAIN_SEPARATOR.slice(2) + txInputHash.slice(2)
-    let hash = web3.sha3(input, {encoding: 'hex'})
+    let hash = web3.utils.sha3Raw(input)
 
     return hash
   }
@@ -74,7 +74,7 @@ contract('SimpleMultiSig', function(accounts) {
     let multisig = await SimpleMultiSig.new(threshold, owners, CHAINID, {from: accounts[0]})
 
     // Receive funds
-    await web3SendTransaction({from: accounts[0], to: multisig.address, value: web3.toWei(web3.toBigNumber(0.1), 'ether')})
+    await web3SendTransaction({from: accounts[0], to: multisig.address, value: web3.toWei(web3.utils.toBN(0.1), 'ether')})
 
     return multisig
   }
@@ -100,7 +100,7 @@ contract('SimpleMultiSig', function(accounts) {
       assert.equal(owners[i], ownerFromContract)
     }
 
-    let value = web3.toWei(web3.toBigNumber(0.01), 'ether')
+    let value = web3.toWei(web3.utils.toBN(0.01), 'ether')
     let sigs = createSigs(signers, multisig.address, nonce, randomAddr, value, '', executor, 21000)
     await multisig.execute(sigs.sigV, sigs.sigR, sigs.sigS, randomAddr, value, '', executor, 21000, {from: msgSender, gasLimit: 1000000})
 
@@ -157,7 +157,7 @@ contract('SimpleMultiSig', function(accounts) {
     assert.equal(nonce.toNumber(), 0)
 
     let randomAddr = web3.sha3(Math.random().toString()).slice(0,42)
-    let value = web3.toWei(web3.toBigNumber(0.1), 'ether')
+    let value = web3.toWei(web3.utils.toBN(0.1), 'ether')
     let sigs = createSigs(signers, multisig.address, nonce + nonceOffset, randomAddr, value, '', executor, gasLimit)
 
     let errMsg = ''
@@ -213,12 +213,12 @@ contract('SimpleMultiSig', function(accounts) {
   })
 
   describe("Pack message encoding", () => {
-    it("should get the expected hash", (done) => {
+    it.only("should get the expected hash", (done) => {
       // want to test that it always gets same hash, so hardcoding these inputs - they're from my metamask
       let addr1 = "0x6a7681a3cBb4EC523a4737449452058a11D97e16"
       let addr2 = "0xdB1fc656627D00789121f54b649a833563857EbE"
       let addr3 = "0x415B4B4d13D21C030c9ecb8E9843ce3f6c0165c1"
-      let value = web3.toWei(web3.toBigNumber(0.01), 'ether')
+      let value = web3.utils.toWei('0.01', 'ether')
 
       hash = packMsg(addr1, 0, addr2, value, '', addr3, 21000)
       assert.equal(hash, "0xf65d46b9f3c377a4fdd06b2a2efdd9bade6f900f1388683c93927876c15a168e")
@@ -346,7 +346,7 @@ contract('SimpleMultiSig', function(accounts) {
 
       const walletAddress = '0xe3de7de481cbde9b4d5f62c6d228ec62277560c8'
       const destination = '0x8582afea2dd8e47297dbcdcf9ca289756ee21430'
-      const value = web3.toWei(web3.toBigNumber(0.01), 'ether')
+      const value = web3.toWei(web3.utils.toBN(0.01), 'ether')
       const data = '0xf207564e0000000000000000000000000000000000000000000000000000000000003039'
       const nonce = 2
       const executor = '0x0be430662ec0659ee786c04925c0146991fbdc0f'
@@ -392,7 +392,7 @@ contract('SimpleMultiSig', function(accounts) {
         assert.equal(endOwners.toString(), accountsB.toString())
 
         // check that the old owners can't send some eth
-        let value = web3.toWei(web3.toBigNumber(0.01), 'ether')
+        let value = web3.toWei(web3.utils.toBN(0.01), 'ether')
         let randomAddr = web3.sha3(Math.random().toString()).slice(0,42)
         nonce += 1
         let errMsg = ''
