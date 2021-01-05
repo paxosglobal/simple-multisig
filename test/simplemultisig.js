@@ -103,6 +103,7 @@ contract('SimpleMultiSig', function(accounts) {
 
     let value = web3.utils.toWei('0.01', 'ether')
     let sigs = createSigs(signers, multisig.address, nonce, randomAddr, value, '', executor, 21000)
+    console.log(sigs.sigV, sigs.sigR, sigs.sigS, randomAddr, value, 0, executor, 21000, {from: msgSender, gasLimit: 1000000})
     await multisig.execute(sigs.sigV, sigs.sigR, sigs.sigS, randomAddr, value, '', executor, 21000, {from: msgSender, gasLimit: 1000000})
 
     // Check funds sent
