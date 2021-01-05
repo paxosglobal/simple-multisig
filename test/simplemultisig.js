@@ -23,8 +23,7 @@ contract('SimpleMultiSig', function(accounts) {
   let acct
   let lw
 
-  let createSigs = function(signers, multisigAddr, nonce, destinationAddr, value, data, executor, gasLimit) {
-
+  let packMsg = function(multisigAddr, nonce, destinationAddr, value, data, executor, gasLimit) {
     const domainData = EIP712DOMAINTYPE_HASH + NAME_HASH.slice(2) + VERSION_HASH.slice(2) + CHAINID.toString('16').padStart(64, '0') + multisigAddr.slice(2).padStart(64, '0') + SALT.slice(2)
     DOMAIN_SEPARATOR = web3.sha3(domainData, {encoding: 'hex'})
 
@@ -33,6 +32,13 @@ contract('SimpleMultiSig', function(accounts) {
 
     let input = '0x19' + '01' + DOMAIN_SEPARATOR.slice(2) + txInputHash.slice(2)
     let hash = web3.sha3(input, {encoding: 'hex'})
+
+    return hash
+  }
+
+  let createSigs = function(signers, multisigAddr, nonce, destinationAddr, value, data, executor, gasLimit) {
+
+    let hash = packMsg(multisigAddr, nonce, destinationAddr, value, data, executor, gasLimit)
 
     let sigV = []
     let sigR = []
@@ -203,6 +209,19 @@ contract('SimpleMultiSig', function(accounts) {
         acct.sort()
         done()
       })
+    })
+  })
+
+  describe("Pack message encoding", () => {
+    it("should get the expected hash", (done) => {
+      // want to test that it always gets same hash, so hardcoding these inputs - they're from my metamask
+      let addr1 = "0x6a7681a3cBb4EC523a4737449452058a11D97e16"
+      let addr2 = "0xdB1fc656627D00789121f54b649a833563857EbE"
+      let addr3 = "0x415B4B4d13D21C030c9ecb8E9843ce3f6c0165c1"
+      let value = web3.toWei(web3.toBigNumber(0.01), 'ether')
+      hash = packMsg(addr1, 0, addr2, value, '', addr3, 21000)
+      assert.equal(hash, "0xf65d46b9f3c377a4fdd06b2a2efdd9bade6f900f1388683c93927876c15a168e")
+      done()
     })
   })
 
