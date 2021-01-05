@@ -219,8 +219,14 @@ contract('SimpleMultiSig', function(accounts) {
       let addr2 = "0xdB1fc656627D00789121f54b649a833563857EbE"
       let addr3 = "0x415B4B4d13D21C030c9ecb8E9843ce3f6c0165c1"
       let value = web3.toWei(web3.toBigNumber(0.01), 'ether')
+
       hash = packMsg(addr1, 0, addr2, value, '', addr3, 21000)
       assert.equal(hash, "0xf65d46b9f3c377a4fdd06b2a2efdd9bade6f900f1388683c93927876c15a168e")
+
+      let number = 12345
+      let data = lightwallet.txutils._encodeFunctionTxData('register', ['uint256'], [number])
+      hash = packMsg(addr1, 1, addr2, value, data, addr3, 21000)
+      assert.equal(hash, "0x7fc98c5b844576122f29b0119f532356459f553c67e32b68353e85850c647e38")
       done()
     })
   })
