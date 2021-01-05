@@ -74,7 +74,7 @@ contract('SimpleMultiSig', function(accounts) {
     let multisig = await SimpleMultiSig.new(threshold, owners, CHAINID, {from: accounts[0]})
 
     // Receive funds
-    await web3SendTransaction({from: accounts[0], to: multisig.address, value: web3.toWei(web3.utils.toBN(0.1), 'ether')})
+    await web3SendTransaction({from: accounts[0], to: multisig.address, value: web3.utils.toWei('0.1', 'ether')})
 
     return multisig
   }
@@ -82,7 +82,7 @@ contract('SimpleMultiSig', function(accounts) {
   let executeSendSuccess = async function(owners, threshold, signers, done) {
 
     let multisig = await setupContract(owners, threshold)
-    let randomAddr = web3.sha3(Math.random().toString()).slice(0,42)
+    let randomAddr = web3.utils.sha3Raw(Math.random().toString()).slice(0,42)
     let executor = accounts[0]
     let msgSender = accounts[0]
 
@@ -90,17 +90,18 @@ contract('SimpleMultiSig', function(accounts) {
     assert.equal(nonce.toNumber(), 0)
 
     let bal = await web3GetBalance(multisig.address)
-    assert.equal(bal, web3.toWei(0.1, 'ether'))
+    assert.equal(bal, web3.utils.toWei('0.1', 'ether'))
 
     // check that owners are stored correctly
     let ownersArr = await multisig.owners.call()
-    assert.equal(ownersArr.toString(), owners.toString())
+    // checksum capitalized or all lowercase addresses are not consistent here
+    assert.equal(ownersArr.toString().toLowerCase(), owners.toString().toLowerCase())
     for (var i=0; i<owners.length; i++) {
       let ownerFromContract = await multisig.ownersArr.call(i)
-      assert.equal(owners[i], ownerFromContract)
+      assert.equal(web3.utils.toChecksumAddress(owners[i]), web3.utils.toChecksumAddress(ownerFromContract))
     }
 
-    let value = web3.toWei(web3.utils.toBN(0.01), 'ether')
+    let value = web3.utils.toWei('0.01', 'ether')
     let sigs = createSigs(signers, multisig.address, nonce, randomAddr, value, '', executor, 21000)
     await multisig.execute(sigs.sigV, sigs.sigR, sigs.sigS, randomAddr, value, '', executor, 21000, {from: msgSender, gasLimit: 1000000})
 
@@ -213,7 +214,7 @@ contract('SimpleMultiSig', function(accounts) {
   })
 
   describe("Pack message encoding", () => {
-    it.only("should get the expected hash", (done) => {
+    it("should get the expected hash", (done) => {
       // want to test that it always gets same hash, so hardcoding these inputs - they're from my metamask
       let addr1 = "0x6a7681a3cBb4EC523a4737449452058a11D97e16"
       let addr2 = "0xdB1fc656627D00789121f54b649a833563857EbE"
@@ -233,7 +234,7 @@ contract('SimpleMultiSig', function(accounts) {
 
   describe("3 signers, threshold 2", () => {
 
-    it("should succeed with signers 0, 1", (done) => {
+    it.only("should succeed with signers 0, 1", (done) => {
       let signers = [acct[0], acct[1]]
       signers.sort()
       executeSendSuccess(acct.slice(0,3), 2, signers, done)
