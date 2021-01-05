@@ -24,10 +24,10 @@ contract('SimpleMultiSig', function(accounts) {
   let lw
 
   let packMsg = function(multisigAddr, nonce, destinationAddr, value, data, executor, gasLimit) {
-    const domainData = EIP712DOMAINTYPE_HASH + NAME_HASH.slice(2) + VERSION_HASH.slice(2) + CHAINID.toString('16').padStart(64, '0') + multisigAddr.slice(2).padStart(64, '0') + SALT.slice(2)
+    const domainData = EIP712DOMAINTYPE_HASH + NAME_HASH.slice(2) + VERSION_HASH.slice(2) + CHAINID.toString(16).padStart(64, '0') + multisigAddr.slice(2).padStart(64, '0') + SALT.slice(2)
     DOMAIN_SEPARATOR = web3.utils.sha3Raw(domainData)
 
-    let txInput = TXTYPE_HASH + destinationAddr.slice(2).padStart(64, '0') + value.toString('16').padStart(64, '0') + web3.utils.sha3Raw(data).slice(2) + nonce.toString('16').padStart(64, '0') + executor.slice(2).padStart(64, '0') + gasLimit.toString('16').padStart(64, '0')
+    let txInput = TXTYPE_HASH + destinationAddr.slice(2).padStart(64, '0') + web3.utils.toHex(value).padStart(64, '0') + web3.utils.sha3Raw(data).slice(2) + nonce.toString(16).padStart(64, '0') + executor.slice(2).padStart(64, '0') + gasLimit.toString(16).padStart(64, '0')
     let txInputHash = web3.utils.sha3Raw(txInput)
 
     let input = '0x19' + '01' + DOMAIN_SEPARATOR.slice(2) + txInputHash.slice(2)
