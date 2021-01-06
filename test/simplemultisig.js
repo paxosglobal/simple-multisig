@@ -201,7 +201,6 @@ contract('SimpleMultiSig', function(accounts) {
 
   describe("Pack message encoding", () => {
     it("should get the expected hash", (done) => {
-      // want to test that it always gets same hash, so hardcoding these inputs - they're from my metamask
       let addr1 = "0x6a7681a3cBb4EC523a4737449452058a11D97e16"
       let addr2 = "0xdB1fc656627D00789121f54b649a833563857EbE"
       let addr3 = "0x415B4B4d13D21C030c9ecb8E9843ce3f6c0165c1"
