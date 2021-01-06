@@ -26,6 +26,6 @@
   "devDependencies": {
     "bluebird": "*",
     "eth-lightwallet": "*",
-    "truffle": "^4.1.17"
+    "truffle": "^5.1.60"
   }
 }
