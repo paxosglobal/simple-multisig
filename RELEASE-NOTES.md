@@ -26,7 +26,7 @@
 
 * Update Solidity compiler version to 0.4.24.
 
-* Remove use of `bignumber.js` and replace with `web3.utils.toBN()` (Thanks to [barakman](https://github.com/barakman)).
+* Remove use of `bignumber.js` and replace with `web3.toBigNumber()` (Thanks to [barakman](https://github.com/barakman)).
 
 ## Version 1.0.4 - 2018-06-12 ##
 

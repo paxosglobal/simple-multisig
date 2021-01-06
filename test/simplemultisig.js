@@ -15,7 +15,7 @@ const SALT = '0x251543af6a222378665a76fe38dbceae4871a070b7fdaf5c6c30cf758dc33cc0
 
 
 const CHAINID = 1
-const ZEROADDR = '0x000000000000000000000000000000000000000000000'
+const ZEROADDR = '0x0000000000000000000000000000000000000000'
 
 contract('SimpleMultiSig', function(accounts) {
 
@@ -50,20 +50,6 @@ contract('SimpleMultiSig', function(accounts) {
       sigR.push('0x' + sig.r.toString('hex'))
       sigS.push('0x' + sig.s.toString('hex'))
     }
-
-    // if (signers[0] == acct[0]) {
-    //   console.log("Signer: " + signers[0])
-    //   console.log("Wallet address: " + multisigAddr)
-    //   console.log("Destination: " + destinationAddr)
-    //   console.log("Value: " + value)
-    //   console.log("Data: " + data)
-    //   console.log("Nonce: " + nonce)
-    //   console.log("Executor: " + executor)
-    //   console.log("gasLimit: " + gasLimit)
-    //   console.log("r: " + sigR[0])
-    //   console.log("s: " + sigS[0])
-    //   console.log("v: " + sigV[0])
-    // }
 
     return {sigV: sigV, sigR: sigR, sigS: sigS}
 
@@ -102,9 +88,8 @@ contract('SimpleMultiSig', function(accounts) {
     }
 
     let value = web3.utils.toWei('0.01', 'ether')
-    let sigs = createSigs(signers, multisig.address, nonce, randomAddr, value, '', executor, 21000)
-    console.log(sigs.sigV, sigs.sigR, sigs.sigS, randomAddr, value, 0, executor, 21000, {from: msgSender, gasLimit: 1000000})
-    await multisig.execute(sigs.sigV, sigs.sigR, sigs.sigS, randomAddr, value, '', executor, 21000, {from: msgSender, gasLimit: 1000000})
+    let sigs = createSigs(signers, multisig.address, nonce, randomAddr, value, [], executor, 21000)
+    await multisig.execute(sigs.sigV, sigs.sigR, sigs.sigS, randomAddr, value, [], executor, 21000, {from: msgSender, gasLimit: 1000000})
 
     // Check funds sent
     bal = await web3GetBalance(randomAddr)
@@ -116,8 +101,8 @@ contract('SimpleMultiSig', function(accounts) {
 
     // Send again
     // Check that it succeeds with executor = Zero address
-    sigs = createSigs(signers, multisig.address, nonce, randomAddr, value, '', ZEROADDR, 21000)
-    await multisig.execute(sigs.sigV, sigs.sigR, sigs.sigS, randomAddr, value, '', ZEROADDR, 21000, {from: msgSender, gasLimit: 1000000})
+    sigs = createSigs(signers, multisig.address, nonce, randomAddr, value, [], ZEROADDR, 21000)
+    await multisig.execute(sigs.sigV, sigs.sigR, sigs.sigS, randomAddr, value, [], ZEROADDR, 21000, {from: msgSender, gasLimit: 1000000})
 
     // Check funds
     bal = await web3GetBalance(randomAddr)
@@ -158,19 +143,19 @@ contract('SimpleMultiSig', function(accounts) {
     let nonce = await multisig.nonce.call()
     assert.equal(nonce.toNumber(), 0)
 
-    let randomAddr = web3.sha3(Math.random().toString()).slice(0,42)
-    let value = web3.toWei(web3.utils.toBN(0.1), 'ether')
-    let sigs = createSigs(signers, multisig.address, nonce + nonceOffset, randomAddr, value, '', executor, gasLimit)
+    let randomAddr = web3.utils.sha3Raw(Math.random().toString()).slice(0,42)
+    let value = web3.utils.toWei('0.1', 'ether')
+    let sigs = createSigs(signers, multisig.address, nonce + nonceOffset, randomAddr, value, [], executor, gasLimit)
 
     let errMsg = ''
     try {
-      await multisig.execute(sigs.sigV, sigs.sigR, sigs.sigS, randomAddr, value, '', executor, gasLimit, {from: executor, gasLimit: 1000000})
+      await multisig.execute(sigs.sigV, sigs.sigR, sigs.sigS, randomAddr, value, [], executor, gasLimit, {from: executor, gasLimit: 1000000})
     }
     catch(error) {
       errMsg = error.message
     }
 
-    assert.equal(errMsg, 'VM Exception while processing transaction: revert', 'Test did not throw')
+    assert.equal(errMsg, 'Returned error: VM Exception while processing transaction: revert', 'Test did not throw')
 
     done()
   }
@@ -184,7 +169,7 @@ contract('SimpleMultiSig', function(accounts) {
       errMsg = error.message
     }
 
-    assert.equal(errMsg, 'VM Exception while processing transaction: revert', 'Test did not throw')
+    assert.equal(errMsg, 'Returned error: VM Exception while processing transaction: revert', 'Test did not throw')
 
     done()
   }
@@ -222,7 +207,7 @@ contract('SimpleMultiSig', function(accounts) {
       let addr3 = "0x415B4B4d13D21C030c9ecb8E9843ce3f6c0165c1"
       let value = web3.utils.toWei('0.01', 'ether')
 
-      hash = packMsg(addr1, 0, addr2, value, '', addr3, 21000)
+      hash = packMsg(addr1, 0, addr2, value, [], addr3, 21000)
       assert.equal(hash, "0xf65d46b9f3c377a4fdd06b2a2efdd9bade6f900f1388683c93927876c15a168e")
 
       let number = 12345
@@ -235,7 +220,7 @@ contract('SimpleMultiSig', function(accounts) {
 
   describe("3 signers, threshold 2", () => {
 
-    it.only("should succeed with signers 0, 1", (done) => {
+    it("should succeed with signers 0, 1", (done) => {
       let signers = [acct[0], acct[1]]
       signers.sort()
       executeSendSuccess(acct.slice(0,3), 2, signers, done)
@@ -305,23 +290,23 @@ contract('SimpleMultiSig', function(accounts) {
   describe("Hash constants", () => {
     it("uses correct hash for EIP712DOMAINTYPE", (done) => {
       const eip712DomainType = 'EIP712Domain(string name,string version,uint256 chainId,address verifyingContract,bytes32 salt)'
-      assert.equal(web3.sha3(eip712DomainType), EIP712DOMAINTYPE_HASH)
+      assert.equal(web3.utils.sha3Raw(eip712DomainType), EIP712DOMAINTYPE_HASH)
       done()
     })
 
     it("uses correct hash for NAME", (done) => {
-      assert.equal(web3.sha3('Simple MultiSig'), NAME_HASH)
+      assert.equal(web3.utils.sha3Raw('Simple MultiSig'), NAME_HASH)
       done()
     })
 
     it("uses correct hash for VERSION", (done) => {
-      assert.equal(web3.sha3('1'), VERSION_HASH)
+      assert.equal(web3.utils.sha3Raw('1'), VERSION_HASH)
       done()
     })
 
     it("uses correct hash for MULTISIGTX", (done) => {
       const multiSigTxType = 'MultiSigTransaction(address destination,uint256 value,bytes data,uint256 nonce,address executor,uint256 gasLimit)'
-      assert.equal(web3.sha3(multiSigTxType), TXTYPE_HASH)
+      assert.equal(web3.utils.sha3Raw(multiSigTxType), TXTYPE_HASH)
       done()
     })
   })
@@ -348,7 +333,7 @@ contract('SimpleMultiSig', function(accounts) {
 
       const walletAddress = '0xe3de7de481cbde9b4d5f62c6d228ec62277560c8'
       const destination = '0x8582afea2dd8e47297dbcdcf9ca289756ee21430'
-      const value = web3.toWei(web3.utils.toBN(0.01), 'ether')
+      const value = web3.utils.toWei('0.01', 'ether')
       const data = '0xf207564e0000000000000000000000000000000000000000000000000000000000003039'
       const nonce = 2
       const executor = '0x0be430662ec0659ee786c04925c0146991fbdc0f'
@@ -391,27 +376,27 @@ contract('SimpleMultiSig', function(accounts) {
         await multisig.execute(sigs.sigV, sigs.sigR, sigs.sigS, multisig.address, 0, data, executor, 200000, {from: executor, gasLimit: 1000000})
 
         let endOwners = await multisig.owners()
-        assert.equal(endOwners.toString(), accountsB.toString())
+        assert.equal(endOwners.toString().toLowerCase(), accountsB.toString().toLowerCase())
 
         // check that the old owners can't send some eth
-        let value = web3.toWei(web3.utils.toBN(0.01), 'ether')
-        let randomAddr = web3.sha3(Math.random().toString()).slice(0,42)
+        let value = web3.utils.toWei('0.01', 'ether')
+        let randomAddr = web3.utils.sha3Raw(Math.random().toString()).slice(0,42)
         nonce += 1
         let errMsg = ''
         try {
-          sigs = createSigs(signersA, multisig.address, nonce, randomAddr, value, '', executor, 21000)
-          await multisig.execute(sigs.sigV, sigs.sigR, sigs.sigS, randomAddr, value, '', executor, 21000, {from: executor, gasLimit: 1000000})
+          sigs = createSigs(signersA, multisig.address, nonce, randomAddr, value, [], executor, 21000)
+          await multisig.execute(sigs.sigV, sigs.sigR, sigs.sigS, randomAddr, value, [], executor, 21000, {from: executor, gasLimit: 1000000})
         }
         catch(error) {
           errMsg = error.message
         }
-        assert.equal(errMsg, 'VM Exception while processing transaction: revert', 'Test did not throw')
+        assert.equal(errMsg, 'Returned error: VM Exception while processing transaction: revert', 'Test did not throw')
         bal = await web3GetBalance(randomAddr)
         assert.equal(bal.toString(), 0)
 
         // check that the new owners can send some eth
-        sigs = createSigs(signersB, multisig.address, nonce, randomAddr, value, '', executor, 21000)
-        await multisig.execute(sigs.sigV, sigs.sigR, sigs.sigS, randomAddr, value, '', executor, 21000, {from: executor, gasLimit: 1000000})
+        sigs = createSigs(signersB, multisig.address, nonce, randomAddr, value, [], executor, 21000)
+        await multisig.execute(sigs.sigV, sigs.sigR, sigs.sigS, randomAddr, value, [], executor, 21000, {from: executor, gasLimit: 1000000})
         bal = await web3GetBalance(randomAddr)
         assert.equal(bal.toString(), value.toString())
 
@@ -444,10 +429,10 @@ contract('SimpleMultiSig', function(accounts) {
         catch(error) {
           errMsg = error.message
         }
-        assert.equal(errMsg, 'VM Exception while processing transaction: revert', 'Test did not throw')
+        assert.equal(errMsg, 'Returned error: VM Exception while processing transaction: revert', 'Test did not throw')
 
         let endOwners = await multisig.owners()
-        assert.equal(endOwners.toString(), accountsA.toString())
+        assert.equal(endOwners.toString().toLowerCase(), accountsA.toString().toLowerCase())
 
         done()
       }
@@ -473,10 +458,10 @@ contract('SimpleMultiSig', function(accounts) {
         catch(error) {
           errMsg = error.message
         }
-        assert.equal(errMsg, 'VM Exception while processing transaction: revert', 'Test did not throw')
+        assert.equal(errMsg, 'Returned error: VM Exception while processing transaction: revert', 'Test did not throw')
 
         let endOwners = await multisig.owners()
-        assert.equal(endOwners.toString(), accountsA.toString())
+        assert.equal(endOwners.toString().toLowerCase(), accountsA.toString().toLowerCase())
 
         done()
       }
@@ -508,7 +493,7 @@ contract('SimpleMultiSig', function(accounts) {
         catch(error) {
           errMsg = error.message
         }
-        assert.equal(errMsg, 'VM Exception while processing transaction: revert', 'Test did not throw')
+        assert.equal(errMsg, 'Returned error: VM Exception while processing transaction: revert', 'Test did not throw')
 
         // change the owners to none
         let noAccounts = []
@@ -521,10 +506,10 @@ contract('SimpleMultiSig', function(accounts) {
         catch(error) {
           errMsg = error.message
         }
-        assert.equal(errMsg, 'VM Exception while processing transaction: revert', 'Test did not throw')
+        assert.equal(errMsg, 'Returned error: VM Exception while processing transaction: revert', 'Test did not throw')
 
         let endOwners = await multisig.owners()
-        assert.equal(endOwners.toString(), accountsA.toString())
+        assert.equal(endOwners.toString().toLowerCase(), accountsA.toString().toLowerCase())
 
         done()
       }
