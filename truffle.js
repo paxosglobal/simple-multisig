@@ -14,7 +14,7 @@ module.exports = {
   },
   compilers: {
     solc: {
-      version: "v0.4.24+commit.e67f0147" // Freeze solidity version
+      version: "v0.6.11+commit.5ef660b1" // Freeze solidity version
     }
   }
 };
