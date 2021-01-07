@@ -22,7 +22,7 @@ bytes32 constant SALT = 0x251543af6a222378665a76fe38dbceae4871a070b7fdaf5c6c30cf
   mapping (address => bool) isOwner; // mutable state
   address[] public ownersArr;        // mutable state
 
-  bytes32 DOMAIN_SEPARATOR;          // hash for EIP712, computed from contract address
+  bytes32 immutable DOMAIN_SEPARATOR;          // hash for EIP712, computed from contract address
 
   function owners() public view returns (address[] memory) {
     return ownersArr;
@@ -85,11 +85,9 @@ bytes32 constant SALT = 0x251543af6a222378665a76fe38dbceae4871a070b7fdaf5c6c30cf
     }
 
     // If we make it here all signatures are accounted for.
-    // The address.call() syntax is no longer recommended, see:
-    // https://github.com/ethereum/solidity/issues/2884
     nonce = nonce + 1;
     bool success = false;
-    assembly { success := call(gasLimit, destination, value, add(data, 0x20), mload(data), 0, 0) }
+    (success,) = destination.call.value(value)(data);
     require(success);
   }
 
