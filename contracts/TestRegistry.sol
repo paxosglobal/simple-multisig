@@ -5,7 +5,7 @@ contract TestRegistry {
 
   mapping(address => uint) public registry;
 
-  function register(uint x) payable public {
+  function register(uint x) payable external {
     registry[msg.sender] = x;
   }
 

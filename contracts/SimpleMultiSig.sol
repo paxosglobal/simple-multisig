@@ -24,7 +24,7 @@ bytes32 constant SALT = 0x251543af6a222378665a76fe38dbceae4871a070b7fdaf5c6c30cf
 
   bytes32 immutable DOMAIN_SEPARATOR;          // hash for EIP712, computed from contract address
 
-  function owners() public view returns (address[] memory) {
+  function owners() external view returns (address[] memory) {
     return ownersArr;
   }
 
@@ -68,7 +68,7 @@ bytes32 constant SALT = 0x251543af6a222378665a76fe38dbceae4871a070b7fdaf5c6c30cf
   }
 
   // Note that address recovered from signatures must be strictly increasing, in order to prevent duplicates
-  function execute(uint8[] memory sigV, bytes32[] memory sigR, bytes32[] memory sigS, address destination, uint value, bytes memory data, address executor, uint gasLimit) public {
+  function execute(uint8[] memory sigV, bytes32[] memory sigR, bytes32[] memory sigS, address destination, uint value, bytes memory data, address executor, uint gasLimit) external {
     require(sigR.length == threshold);
     require(sigR.length == sigS.length && sigR.length == sigV.length);
     require(executor == msg.sender || executor == address(0));
