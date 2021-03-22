@@ -5,7 +5,7 @@ Forked from: https://github.com/christianlundkvist/simple-multisig
 ## Introduction
 
 This is Paxos Simple Multisig, based off of [the original](https://github.com/christianlundkvist/simple-multisig). It is an Ethereum smart contract designed to be as simple as possible. The original is described further in this [medium post](https://medium.com/@ChrisLundkvist/exploring-simpler-ethereum-multisig-contracts-b71020c19037). 
-Paxos has extended the contract to add a `setOwners` feature allowing a quorum of signers to change the entire set of signers. We have a blogpost [here](https://www.paxos.com/simple-multisig-how-it-works-and-why-its-awesome).
+Paxos has extended the contract to add a `setOwners` feature allowing a quorum of signers to change the entire set of signers. We have a blogpost introducing this system [here](https://www.paxos.com/simple-multisig-how-it-works-and-why-its-awesome).
 
 The main idea behind the contract is to pass in a threshold of detached signatures into the `execute` function and the contract will check the signatures and send off the transaction.
 
