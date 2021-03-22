@@ -4,15 +4,14 @@ Forked from: https://github.com/christianlundkvist/simple-multisig
 
 ## Introduction
 
-This is an Ethereum multisig contract designed to be as simple as possible. It is described further in this [medium post](https://medium.com/@ChrisLundkvist/exploring-simpler-ethereum-multisig-contracts-b71020c19037).
+This is Paxos Simple Multisig, based off of [the original](https://github.com/christianlundkvist/simple-multisig). It is an Ethereum smart contract designed to be as simple as possible. The original is described further in this [medium post](https://medium.com/@ChrisLundkvist/exploring-simpler-ethereum-multisig-contracts-b71020c19037). 
+Paxos has extended the contract to add a `setOwners` feature allowing a quorum of signers to change the entire set of signers. We have a blogpost introducing this system [here](https://www.paxos.com/simple-multisig-how-it-works-and-why-its-awesome).
 
 The main idea behind the contract is to pass in a threshold of detached signatures into the `execute` function and the contract will check the signatures and send off the transaction.
 
-The audit report by [ConsenSys Diligence'](https://consensys.net/diligence/) can be found [here](./audit.pdf). 
+The original audit report by [ConsenSys Diligence'](https://consensys.net/diligence/) can be found [here](./audit.pdf). 
 
-## Version 2.0.0 Update to EIP712
-
-In version 2.0.0 the Simple Multisig was updated to use the EIP712 signature standard. This means that the signature format of the previous version is no longer compatible. If your contract is already deployed and in use it still works but that version will no longer be supported in the future. We recommend moving ETH and tokens over to a newly deployed contract and using the EIP712 format going forward. Another change to be aware of is that the constructor now takes an extra parameter `chainId` to specify which network the contract is deployed on.
+The updated audit report by [ConsenSys Diligence'](https://consensys.net/diligence/) can be found [here](https://consensys.net/diligence/audits/2020/11/paxos/).
 
 ## Data to be signed
 
@@ -35,7 +34,7 @@ The data to be signed also includes the following EIP712 Domain data that specif
 
 ## Setting Owners
 
-Paxos Simple Multisig is based on [the original](https://github.com/christianlundkvist/simple-multisig) but adds setOwners functionality to be able to add and remove owners directly.
+Paxos Simple Multisig adds setOwners functionality to be able to add and remove owners directly using a quorum of signers.
 
 ## Installation and testing
 
